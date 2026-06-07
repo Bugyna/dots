@@ -1,0 +1,3 @@
+[submodule "lua/bugx.nvim"]
+	path = lua/bugx.nvim
+	url = https://github.com/bugyna/bugx.nvim
