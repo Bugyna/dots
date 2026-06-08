@@ -332,11 +332,25 @@ vim.keymap.set('n', '<leader>hrq', ht.repl.quit, opts)
 
 
 -- telescope
+
+require("telescope").setup {
+defaults = { --[[ your defaults]] },
+	extensions = {
+		file_browser = {
+		}
+	}
+}
+
+local fb = require "telescope".extensions.file_browser
+local fb_actions = require "telescope".extensions.file_browser.actions
+
+require("telescope").load_extension "file_browser"
+
 local builtin = require('telescope.builtin')
-vim.keymap.set({'n', 'i', 'v'}, '<C-g>', builtin.find_files, { desc = 'Telescope find files' })
+vim.keymap.set({'n', 'i', 'v'}, '<C-g>', fb.file_browser, { desc = 'Telescope find files' })
 vim.keymap.set({'n', 'i', 'v'}, '<C-;>', builtin.buffers, { desc = 'Telescope buffers' })
 
-vim.keymap.set({'n', 'i', 'v'}, '<leader>ff', builtin.find_files, { desc = 'Telescope find files' })
+vim.keymap.set({'n', 'i', 'v'}, '<leader>ff', fb.file_browser, { desc = 'Telescope find files' })
 vim.keymap.set({'n', 'i', 'v'}, '<leader>fg', builtin.live_grep, { desc = 'Telescope live grep' })
 vim.keymap.set({'n', 'i', 'v'}, '<leader>fb', builtin.buffers, { desc = 'Telescope buffers' })
 vim.keymap.set({'n', 'i', 'v'}, '<leader>fh', builtin.help_tags, { desc = 'Telescope help tags' })
