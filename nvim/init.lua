@@ -52,6 +52,46 @@ CreateEncloseInCharBinds = function(c, bc)
 end
 
 
+BindRunCommand = function(map, command)
+	vim.keymap.set({'n', 't', 'v'}, map, command)
+	vim.keymap.set('i', map, string.format("<C-o>%s", command))
+end
+
+
+SwitchBuffer = function(prev)
+	if prev == nil then prev = false end
+	splitview = vim.fn.winnr('$') > 1
+	if not prev then
+		if splitview then
+			vim.cmd('wincmd w')
+		else
+			vim.cmd(':bn')
+		end
+	else
+		if splitview then
+			vim.cmd('wincmd W')
+		else
+			vim.cmd(':bp')
+		end
+	end
+end
+
+
+function dump(o)
+   if type(o) == 'table' then
+      local s = '{ '
+      for k,v in pairs(o) do
+         if type(k) ~= 'number' then k = '"'..k..'"' end
+         s = s .. '['..k..'] = ' .. dump(v) .. ','
+      end
+      return s .. '} '
+   else
+      return tostring(o)
+   end
+end
+
+
+
 
 -- Set <space> as the leader key
 -- See `:help mapleader`
@@ -156,6 +196,31 @@ vim.keymap.set({'v'}, '<C-/>', 'gc')
 vim.keymap.set({'i'}, '<C-/>', '<C-o>:norm gcc<Cr>')
 
 vim.keymap.set({'n', 'v', 't'}, 'd', '"_d')
+vim.keymap.set({'n', 'v', 't'}, '<Del>', '"_dl')
+
+BindRunCommand('<C-BS>', 'db')
+BindRunCommand('<C-Del>', 'de')
+BindRunCommand('<C-d>', 'diw')
+BindRunCommand('<A-d>', 'dd')
+
+
+BindRunCommand('<C-z>', 'u')
+BindRunCommand('<C-y>', '<C-r>')
+BindRunCommand('<C-r>', '<C-r>')
+
+
+vim.keymap.set('i', '<S-Up>',    '<C-o>v<Up>')
+vim.keymap.set('i', '<S-Down>',  '<C-o>v<Down>')
+vim.keymap.set('i', '<S-Left>',  '<C-o>v<Left>')
+vim.keymap.set('i', '<S-Right>', '<C-o>v<Right>')
+vim.keymap.set('i', '<C-S-Up>',    '<C-o><C-S-v><Up>')
+vim.keymap.set('i', '<C-S-Down>',  '<C-o><C-S-v><Down>')
+vim.keymap.set('i', '<C-S-Left>',  '<C-o><C-S-v><Left>')
+vim.keymap.set('i', '<A-Up>',    ':m-2<Cr>')
+vim.keymap.set('i', '<A-Down>',  ':m+1<CR>')
+vim.keymap.set('v', '<A-Up>',    ':m-2<Cr>')
+vim.keymap.set('v', '<A-Down>',  ':m+1<CR>')
+vim.keymap.set('i', '<C-S-Right>', '<C-o><C-S-v><Right>')
 
 vim.keymap.set({'n', 'v'}, '<C-Space>', ':')
 vim.keymap.set('i', '<C-Space>', '<C-o>:')
@@ -176,6 +241,16 @@ vim.keymap.set({'i', 'n', 'v', 't'}, '<C-C>', 'mayiw`a')
 
 vim.keymap.set({'n', 'v', 't'}, 'p', ']p')
 vim.keymap.set({'n', 'v', 't'}, 'P', ']P')
+
+
+
+vim.keymap.set({'i', 'n', 'v', 't'}, '<C-Tab>', (function() SwitchBuffer() end))
+vim.keymap.set({'i', 'n', 'v', 't'}, '<C-S-Tab>', (function() SwitchBuffer(true) end))
+
+
+BindRunCommand('<C-\\>', ':vsplit<CR>')
+BindRunCommand('<C-S-\\>', '<C-w>o')
+
 
 
 CreateEncloseInCharBinds('"', "'")
