@@ -35,20 +35,22 @@ RunProj = function()
 end
 
 
-EncloseWordInChar = function(c)
-	return string.format("cw%s%sP", c, c)
+EncloseWordInChar = function(c, matching)
+	if matching == nil then matching = c end
+	return string.format("cw%s%s<Esc>P", c, matching)
 end
 
-EncloseSelectionInChar = function(c)
-	return string.format("c%s%sP", c, c)
+EncloseSelectionInChar = function(c, matching)
+	if matching == nil then matching = c end
+	return string.format("c%s%s<Esc>P", c, matching)
 end
 
 
-CreateEncloseInCharBinds = function(c, bc)
+CreateEncloseInCharBinds = function(c, matching, bc)
 	if bc == nil then bc = c end
-	vim.keymap.set({'n', 't'}, string.format('<M-%s>', bc), EncloseWordInChar(c))
-	vim.keymap.set({'v'},      string.format('<M-%s>', bc), EncloseSelectionInChar(c))
-	vim.keymap.set({'i'},      string.format('<M-%s>', bc), string.format('<C-o>%s', EncloseWordInChar(c)))
+	vim.keymap.set({'n', 't'}, string.format('<M-%s>', bc), EncloseWordInChar(c, matching))
+	vim.keymap.set({'v'},      string.format('<M-%s>', bc), EncloseSelectionInChar(c, matching))
+	vim.keymap.set({'i'},      string.format('<M-%s>', bc), string.format('<C-o>%s', EncloseWordInChar(c, matching)))
 end
 
 
@@ -216,17 +218,23 @@ vim.keymap.set('i', '<S-Right>', '<C-o>v<Right>')
 vim.keymap.set('i', '<C-S-Up>',    '<C-o><C-S-v><Up>')
 vim.keymap.set('i', '<C-S-Down>',  '<C-o><C-S-v><Down>')
 vim.keymap.set('i', '<C-S-Left>',  '<C-o><C-S-v><Left>')
-vim.keymap.set('i', '<A-Up>',    ':m-2<Cr>')
-vim.keymap.set('i', '<A-Down>',  ':m+1<CR>')
-vim.keymap.set('v', '<A-Up>',    ':m-2<Cr>')
-vim.keymap.set('v', '<A-Down>',  ':m+1<CR>')
 vim.keymap.set('i', '<C-S-Right>', '<C-o><C-S-v><Right>')
+
+BindRunCommand('<A-Up>',    ':m-2<Cr>')
+BindRunCommand('<A-Down>',  ':m+1<CR>')
+BindRunCommand('<A-Up>',    ':m-2<Cr>')
+BindRunCommand('<A-Down>',  ':m+1<CR>')
+
 
 vim.keymap.set({'n', 'v'}, '<C-Space>', ':')
 vim.keymap.set('i', '<C-Space>', '<C-o>:')
 
 vim.keymap.set('v', '<Tab>', '>>')
 vim.keymap.set('v', '<S-Tab>', '<<')
+
+vim.keymap.set('i', '<S-Tab>', '<C-o><<')
+vim.keymap.set('n', '<Tab>', '>>')
+vim.keymap.set('n', '<S-Tab>', '<<')
 
 vim.keymap.set({'i', 'n', 'v'}, '<S-Cr>', BuildProj)
 vim.keymap.set({'i', 'n', 'v'}, '<C-Cr>', RunProj)
@@ -239,8 +247,8 @@ vim.keymap.set({'i', 'n', 'v'}, '<S-Down>', '<Down>')
 vim.keymap.set({'i', 'n', 'v', 't'}, '<C-C>', 'mayiw`a')
 
 
-vim.keymap.set({'n', 'v', 't'}, 'p', ']p')
-vim.keymap.set({'n', 'v', 't'}, 'P', ']P')
+-- vim.keymap.set({'n', 'v', 't'}, 'p', ']p')
+-- vim.keymap.set({'n', 'v', 't'}, 'P', ']P')
 
 
 
@@ -256,12 +264,13 @@ BindRunCommand('<A-n>', '`.')
 
 
 CreateEncloseInCharBinds('"', "'")
-CreateEncloseInCharBinds('{')
-CreateEncloseInCharBinds('[')
-CreateEncloseInCharBinds('(')
-CreateEncloseInCharBinds('"')
-CreateEncloseInCharBinds('<')
-CreateEncloseInCharBinds('|')
+CreateEncloseInCharBinds('[', ']')
+CreateEncloseInCharBinds('{', '}', 'S-[')
+CreateEncloseInCharBinds('(', ')', 'S-9')
+CreateEncloseInCharBinds('(', ')', '9')
+CreateEncloseInCharBinds('<', '>', 'S-,')
+CreateEncloseInCharBinds('"', "S-'")
+CreateEncloseInCharBinds('|', 'S-\\')
 
 
 -- [[ Basic Autocommands ]].
@@ -301,11 +310,10 @@ vim.cmd.colorscheme("darkblue")
 vim.o.statusline = '%M%f%r%y[%n]-[%l.%v]/%L'
 
 
-vim.cmd('setlocal tabstop=2 shiftwidth=2 softtabstop=0 noexpandtab')
-
-vim.cmd('autocmd FileType haskell setlocal tabstop=2 shiftwidth=2 softtabstop=2 expandtab')
-vim.cmd('autocmd FileType prolog setlocal tabstop=2 shiftwidth=2 softtabstop=0 noexpandtab')
-vim.cmd('autocmd FileType lua setlocal tabstop=2 shiftwidth=2 softtabstop=0 noexpandtab')
+vim.cmd('set tabstop=3 shiftwidth=0 softtabstop=0 noexpandtab')
+vim.cmd('autocmd FileType haskell setlocal tabstop=2 shiftwidth=0 softtabstop=2 expandtab')
+vim.cmd('autocmd FileType prolog setlocal tabstop=2 shiftwidth=0 softtabstop=0 noexpandtab')
+-- vim.cmd('autocmd FileType lua setlocal tabstop=2 shiftwidth=0 softtabstop=0 noexpandtab')
 
 
 require("config.lazy")
