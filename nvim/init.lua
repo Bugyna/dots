@@ -251,6 +251,8 @@ vim.keymap.set({'i', 'n', 'v', 't'}, '<C-S-Tab>', (function() SwitchBuffer(true)
 BindRunCommand('<C-\\>', ':vsplit<CR>')
 BindRunCommand('<C-S-\\>', '<C-w>o')
 
+BindRunCommand('<A-m>', '`\'')
+BindRunCommand('<A-n>', '`.')
 
 
 CreateEncloseInCharBinds('"', "'")
