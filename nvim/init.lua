@@ -40,6 +40,7 @@ EncloseWordInChar = function(c, matching)
 	return string.format("cw%s%s<Esc>P", c, matching)
 end
 
+
 EncloseSelectionInChar = function(c, matching)
 	if matching == nil then matching = c end
 	return string.format("c%s%s<Esc>P", c, matching)
@@ -92,7 +93,28 @@ function dump(o)
    end
 end
 
-
+--
+-- function expandBraces()
+-- 	local line = vim.fn.getline('.')
+-- 	local local_indent = vim.fn.indent('.')
+-- 	local indent_size = tonumber(vim.o.tabstop)
+-- 	-- col = vim.fn.col('.')
+-- 	local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+--
+-- 	if line:sub(col, col) == '(' and line:sub(col+1, col+1) == ')' then
+-- 		vim.api.nvim_buf_set_text(0, row-1, col, row-1, col, {'', '', ''})
+-- 		vim.fn.cursor(row+2, local_indent)
+-- 		vim.cmd(string.format(':le %d', local_indent))
+-- 		vim.fn.cursor(row+1, local_indent+indent_size)
+-- 		vim.cmd(string.format(':le %d', local_indent+indent_size))
+-- 		vim.fn.cursor(row+1, local_indent+indent_size)
+-- 	else
+-- 		vim.api.nvim_buf_set_text(0, row - 1, col, row-1, col, {'', ''})
+-- 		vim.fn.cursor(row+1, col)
+-- 		vim.cmd(string.format(':le %d', local_indent+indent_size))
+-- 		vim.fn.cursor(row+1, col)
+-- 	end
+-- end
 
 
 -- Set <space> as the leader key
@@ -266,6 +288,13 @@ CreateEncloseInCharBinds('"', "S-'")
 CreateEncloseInCharBinds('|', 'S-\\')
 
 
+-- vim.keymap.set('i', '<CR>', expandBraces)
+-- vim.keymap.set('i', '<A-CR>', expandBraces)
+
+
+
+
+
 -- [[ Basic Autocommands ]].
 -- See `:h lua-guide-autocommands`, `:h autocmd`, `:h nvim_create_autocmd()`
 
@@ -312,7 +341,7 @@ vim.cmd('autocmd FileType prolog setlocal tabstop=2 shiftwidth=0 softtabstop=0 n
 require("config.lazy")
 
 
-vim.cmd.colorscheme("dimension")
+vim.cmd.colorscheme("natale-domini")
 
 -- haskell-tools
 local ht = require('haskell-tools')
