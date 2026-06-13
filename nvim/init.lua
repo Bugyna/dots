@@ -198,6 +198,7 @@ vim.keymap.set({'i'}, '<C-Tab>', '<C-o>:bn<Cr>')
 vim.keymap.set({'i'}, '<A-w>', '<C-x><C-i>')
 vim.keymap.set({'i'}, '<S-Space>', '<C-x><C-i>')
 vim.keymap.set({'i'}, '<C-p>', '<C-x><C-i>')
+vim.keymap.set({'i'}, '<Menu>', '<C-x><C-i>')
 
 
 vim.keymap.set({'n'}, '<C-s>', ':w<Cr>')
