@@ -195,9 +195,10 @@ vim.keymap.set({'i'}, '<A-Right>', ':<C-o>bn<Cr>')
 vim.keymap.set({'i'}, '<C-S-Tab>', '<C-o>:bp<Cr>')
 vim.keymap.set({'i'}, '<C-Tab>', '<C-o>:bn<Cr>')
 
-vim.keymap.set({'i'}, '<A-w>', '<C-x><C-i>')
-vim.keymap.set({'i'}, '<S-Space>', '<C-x><C-i>')
+-- vim.keymap.set({'i'}, '<A-w>', '<C-x><C-i>')
+-- vim.keymap.set({'i'}, '<S-Space>', '<C-x><C-i>')
 vim.keymap.set({'i'}, '<C-p>', '<C-x><C-i>')
+vim.keymap.set({'i'}, '<C-S-p>', '<C-x><C-o>')
 vim.keymap.set({'i'}, '<Menu>', '<C-x><C-i>')
 
 
@@ -279,7 +280,7 @@ BindRunCommand('<A-m>', '`\'')
 BindRunCommand('<A-n>', '`.')
 
 
-CreateEncloseInCharBinds('"', "'")
+CreateEncloseInCharBinds('"', '"', "'")
 CreateEncloseInCharBinds('[', ']')
 CreateEncloseInCharBinds('{', '}', 'S-[')
 CreateEncloseInCharBinds('(', ')', 'S-9')
@@ -364,6 +365,54 @@ end, opts)
 vim.keymap.set('n', '<leader>hrq', ht.repl.quit, opts)
 
 
+-- LSP
+
+-- vim.opt.completeopt = { "menuone", "noselect", "popup" } 
+vim.opt.completeopt = { "menuone", "popup" } 
+-- vim.o.complete = ".,w,o" -- use buffer and omnifunc
+
+
+
+vim.lsp.config('pyright', {
+	 settings = { pyright = { disableTaggedHints = false } },
+	})
+vim.lsp.enable('pyright')
+
+vim.lsp.config('gdscript', {})
+-- vim.lsp.enable('gdscript')
+
+vim.api.nvim_create_autocmd("LspAttach", {
+	callback = function(ev)
+		vim.lsp.completion.enable(true, ev.data.client_id, ev.buf, {
+			autotrigger = true,
+			-- optional formating of items
+			-- convert = function(item)
+				-- remove leading misc chars for abbr name,
+				-- and cap field to 25 chars
+				--local abbr = item.label
+				--abbr = abbr:match("[%w_.]+.*") or abbr
+				--abbr = #abbr > 25 and abbr:sub(1, 24) .. "…" or abbr
+				--
+				-- remove return value
+				--local menu = ""
+
+				-- only show abbr name, remove leading misc chars (bullets etc.),
+				-- and cap field to 15 chars
+				-- local abbr = item.label
+				-- abbr = abbr:gsub("%b()", ""):gsub("%b{}", "")
+				-- abbr = abbr:match("[%w_.]+.*") or abbr
+				-- abbr = #abbr > 15 and abbr:sub(1, 14) .. "…" or abbr
+				--
+				-- -- cap return value field to 15 chars
+				-- local menu = item.detail or ""
+				-- menu = #menu > 15 and menu:sub(1, 14) .. "…" or menu
+				--
+				-- return { abbr = abbr, menu = menu }
+			-- end,
+	  })
+	end,
+})
+
 -- telescope
 
 require("telescope").setup {
@@ -394,3 +443,144 @@ vim.keymap.set({'n', 'i', 'v'}, '<M-e>', vim.diagnostic.open_float, { desc = 'di
 vim.keymap.set({'n', 'i', 'v'}, '<M-S-e>', builtin.diagnostics, { desc = 'diagnostics' })
 vim.keymap.set({'n', 'i', 'v'}, '<leader>E', builtin.diagnostics, { desc = 'diagnostics' })
 
+
+
+-- debuggers
+
+local dap = require('dap')
+
+local debugging_movement = false
+
+vim.keymap.set({'n', 'v'}, '<leader>dj',       dap.step_over,         { desc = 'debug step over' })
+vim.keymap.set({'n', 'v'}, '<leader>dl',       dap.step_into,         { desc = 'debug step into' })
+vim.keymap.set({'n', 'v'}, '<leader>dk',       dap.step_out,          { desc = 'debug step out' })
+vim.keymap.set({'n', 'v'}, '<leader>d<Space>', dap.toggle_breakpoint, { desc = 'debug toggle bp' })
+vim.keymap.set({'n', 'v'}, '<leader>d<CR>',    dap.continue,         { desc = 'debug toggle bp' })
+vim.keymap.set({'n', 'v'}, '<leader>d<BS>',    dap.terminate,        { desc = 'debug clear all bp' })
+vim.keymap.set({'n', 'v'}, '<leader>d<Del>',    dap.clear_breakpoints,        { desc = 'debug clear all bp' })
+vim.keymap.set({'n', 'v'}, '<leader>dL',       dap.list_breakpoints,          { desc = 'debug list all bp' })
+
+dap.configurations.python = {
+  {
+    -- The first three options are required by nvim-dap
+    type = 'python'; -- the type here established the link to the adapter definition: `dap.adapters.python`
+    request = 'launch';
+    name = "Launch file";
+
+    -- Options below are for debugpy, see https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings for supported options
+
+    program = "${file}"; -- This configuration will launch the current file if used.
+    pythonPath = function()
+      -- debugpy supports launching an application with a different interpreter then the one used to launch debugpy itself.
+      -- The code below looks for a `venv` or `.venv` folder in the current directly and uses the python within.
+      -- You could adapt this - to for example use the `VIRTUAL_ENV` environment variable.
+      local cwd = vim.fn.getcwd()
+      if vim.fn.executable(cwd .. '/venv/bin/python') == 1 then
+        return cwd .. '/venv/bin/python'
+      elseif vim.fn.executable(cwd .. '/.venv/bin/python') == 1 then
+        return cwd .. '/.venv/bin/python'
+      else
+        return '/run/current-system/sw/bin/python'
+      end
+    end;
+  },
+}
+
+local dap = require('dap')
+dap.adapters.python = function(cb, config)
+  if config.request == 'attach' then
+    ---@diagnostic disable-next-line: undefined-field
+    local port = (config.connect or config).port
+    ---@diagnostic disable-next-line: undefined-field
+    local host = (config.connect or config).host or '127.0.0.1'
+    cb({
+      type = 'server',
+      port = assert(port, '`connect.port` is required for a python `attach` configuration'),
+      host = host,
+      options = {
+        source_filetype = 'python',
+      },
+    })
+  else
+    cb({
+      type = 'executable',
+      command = '/run/current-system/sw/bin/python',
+      args = { '-m', 'debugpy.adapter' },
+      options = {
+        source_filetype = 'python',
+      },
+    })
+  end
+end
+
+
+local dap = require("dap")
+dap.adapters.gdb = {
+  type = "executable",
+  command = "gdb",
+  args = { "--interpreter=dap", "--eval-command", "set print pretty on" }
+}
+
+local dap = require("dap")
+dap.configurations.c = {
+  {
+    name = "Launch",
+    type = "gdb",
+    request = "launch",
+    program = function()
+      return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+    end,
+    args = {}, -- provide arguments if needed
+    cwd = "${workspaceFolder}",
+    stopAtBeginningOfMainSubprogram = false,
+  },
+  {
+    name = "Select and attach to process",
+    type = "gdb",
+    request = "attach",
+    program = function()
+      return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+    end,
+    pid = function()
+      local name = vim.fn.input('Executable name (filter): ')
+      return require("dap.utils").pick_process({ filter = name })
+    end,
+    cwd = '${workspaceFolder}'
+  },
+  {
+    name = 'Attach to gdbserver :1234',
+    type = 'gdb',
+    request = 'attach',
+    target = 'localhost:1234',
+    program = function()
+      return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+    end,
+    cwd = '${workspaceFolder}'
+  }
+}
+
+
+-- debugger ui
+
+require("nvim-dap-virtual-text").setup {
+	commented = true,
+	highlight_changed_variables = true,
+	show_stop_reason = false,
+}
+
+
+local dap, dapui = require("dap"), require("dapui")
+dapui.setup()
+
+dap.listeners.before.attach.dapui_config = function()
+  dapui.open()
+end
+dap.listeners.before.launch.dapui_config = function()
+  dapui.open()
+end
+dap.listeners.before.event_terminated.dapui_config = function()
+  dapui.close()
+end
+dap.listeners.before.event_exited.dapui_config = function()
+  dapui.close()
+end
