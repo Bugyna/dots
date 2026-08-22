@@ -1,3 +1,16 @@
+local function make_transparent()
+  local groups = {'Normal', 'NormalNC', 'NormalFloat', 'SignColumn',
+                  'StatusLine', 'StatusLineNC', 'EndOfBuffer'}
+  for _, group in ipairs(groups) do
+    vim.api.nvim_set_hl(0, group, { bg = 'NONE', ctermbg = 'NONE' })
+  end
+end
+
+make_transparent()
+-- vim.api.nvim_create_autocmd('ColorScheme', {
+--   callback = make_transparent,
+-- })
+
 BuildProj = function()
   local ft = vim.api.nvim_buf_get_option(0, 'filetype')
 
@@ -196,9 +209,9 @@ vim.keymap.set({'i'}, '<C-S-Tab>', '<C-o>:bp<Cr>')
 vim.keymap.set({'i'}, '<C-Tab>', '<C-o>:bn<Cr>')
 
 -- vim.keymap.set({'i'}, '<A-w>', '<C-x><C-i>')
--- vim.keymap.set({'i'}, '<S-Space>', '<C-x><C-i>')
-vim.keymap.set({'i'}, '<C-p>', '<C-x><C-i>')
-vim.keymap.set({'i'}, '<C-S-p>', '<C-x><C-o>')
+vim.keymap.set({'i'}, '<S-Space>', '<C-x><C-i>')
+vim.keymap.set({'i'}, '<C-S-p>', '<C-x><C-i>')
+vim.keymap.set({'i'}, '<C-p>', '<C-x><C-o>')
 vim.keymap.set({'i'}, '<Menu>', '<C-x><C-i>')
 
 
@@ -368,9 +381,8 @@ vim.keymap.set('n', '<leader>hrq', ht.repl.quit, opts)
 -- LSP
 
 -- vim.opt.completeopt = { "menuone", "noselect", "popup" } 
-vim.opt.completeopt = { "menuone", "popup" } 
+vim.opt.completeopt = { "menuone", "noinsert", "preview" } 
 -- vim.o.complete = ".,w,o" -- use buffer and omnifunc
-
 
 
 vim.lsp.config('pyright', {
@@ -413,6 +425,24 @@ vim.api.nvim_create_autocmd("LspAttach", {
 	end,
 })
 
+
+-- tree-sitter
+require('nvim-treesitter').setup {
+  -- Directory to install parsers and queries to (prepended to `runtimepath` to have priority)
+  install_dir = vim.fn.stdpath('data') .. '/site'
+}
+require('nvim-treesitter').install { 'c', 'javascript', 'python' }
+
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = { 'c', 'python', 'javascript' },
+  callback = function()
+    vim.treesitter.start()                                    -- highlighting
+    -- vim.wo.foldexpr = 'v:lua.vim.treesitter.foldexpr()'     -- folds
+    -- vim.wo.foldmethod = 'expr'
+    -- vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()" -- indentation
+  end,
+})
+
 -- telescope
 
 require("telescope").setup {
@@ -431,18 +461,28 @@ require("telescope").load_extension "file_browser"
 local builtin = require('telescope.builtin')
 vim.keymap.set({'n', 'i', 'v'}, '<C-g>', fb.file_browser, { desc = 'Telescope find files' })
 vim.keymap.set({'n', 'i', 'v'}, '<C-;>', builtin.buffers, { desc = 'Telescope buffers' })
+vim.keymap.set({'n', 'i', 'v'}, '<C-f>', builtin.treesitter, { desc = 'treesitter search' })
 
-vim.keymap.set({'n', 'i', 'v'}, '<leader>ff', fb.file_browser, { desc = 'Telescope find files' })
-vim.keymap.set({'n', 'i', 'v'}, '<leader>fg', builtin.live_grep, { desc = 'Telescope live grep' })
-vim.keymap.set({'n', 'i', 'v'}, '<leader>fb', builtin.buffers, { desc = 'Telescope buffers' })
-vim.keymap.set({'n', 'i', 'v'}, '<leader>fh', builtin.help_tags, { desc = 'Telescope help tags' })
+vim.keymap.set({'n', 'v'}, '<leader>ff', fb.file_browser, { desc = 'Telescope find files' })
+-- vim.keymap.set({'n', 'i', 'v'}, '<leader>fg', builtin.live_grep, { desc = 'Telescope live grep' })
+-- vim.keymap.set({'n', 'i', 'v'}, '<leader>fb', builtin.buffers, { desc = 'Telescope buffers' })
+-- vim.keymap.set({'n', 'i', 'v'}, '<leader>fh', builtin.help_tags, { desc = 'Telescope help tags' })
 
+vim.keymap.set({'n', 'v'}, 'gD',
+	function()
+		builtin.treesitter(
+			{
+				default_text = vim.fn.expand("<cword>"),
+			}
+		)
+	end
+	, { desc = 'Telescope help tags' }
+)
 
-vim.keymap.set({'n', 'i', 'v'}, '<leader>e', vim.diagnostic.open_float, { desc = 'diagnostics' })
+vim.keymap.set({'n', 'v'}, '<leader>e', vim.diagnostic.open_float, { desc = 'diagnostics' })
 vim.keymap.set({'n', 'i', 'v'}, '<M-e>', vim.diagnostic.open_float, { desc = 'diagnostics' })
 vim.keymap.set({'n', 'i', 'v'}, '<M-S-e>', builtin.diagnostics, { desc = 'diagnostics' })
-vim.keymap.set({'n', 'i', 'v'}, '<leader>E', builtin.diagnostics, { desc = 'diagnostics' })
-
+vim.keymap.set({'n', 'v'}, '<leader>E', builtin.diagnostics, { desc = 'diagnostics' })
 
 
 -- debuggers
