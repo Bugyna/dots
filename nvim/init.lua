@@ -210,8 +210,8 @@ vim.keymap.set({'i'}, '<C-Tab>', '<C-o>:bn<Cr>')
 
 -- vim.keymap.set({'i'}, '<A-w>', '<C-x><C-i>')
 vim.keymap.set({'i'}, '<S-Space>', '<C-x><C-i>')
-vim.keymap.set({'i'}, '<C-S-p>', '<C-x><C-i>')
-vim.keymap.set({'i'}, '<C-p>', '<C-x><C-o>')
+vim.keymap.set({'i'}, '<C-S-p>', '<C-x><C-o>')
+vim.keymap.set({'i'}, '<C-p>', '<C-x><C-i>')
 vim.keymap.set({'i'}, '<Menu>', '<C-x><C-i>')
 
 
@@ -347,16 +347,26 @@ vim.cmd.colorscheme("darkblue")
 vim.o.statusline = '%M%f%r%y[%n]-[%l.%v]/%L'
 
 
-vim.cmd('set tabstop=3 shiftwidth=0 softtabstop=0 noexpandtab')
-vim.cmd('autocmd FileType haskell setlocal tabstop=2 shiftwidth=0 softtabstop=2 expandtab')
-vim.cmd('autocmd FileType prolog setlocal tabstop=2 shiftwidth=0 softtabstop=0 noexpandtab')
+vim.cmd('set tabstop=2 shiftwidth=0 softtabstop=2 expandtab')
+vim.cmd('autocmd FileType haskell    setlocal tabstop=2 shiftwidth=0 softtabstop=2 expandtab')
+vim.cmd('autocmd FileType cabal      setlocal tabstop=2 shiftwidth=0 softtabstop=2 expandtab')
+vim.cmd('autocmd FileType prolog     setlocal tabstop=2 shiftwidth=0 softtabstop=0 noexpandtab')
+vim.cmd('autocmd FileType svelte     setlocal tabstop=4 shiftwidth=0 softtabstop=0 expandtab')
+vim.cmd('autocmd FileType javascript setlocal tabstop=4 shiftwidth=0 softtabstop=0 expandtab')
+vim.cmd('autocmd FileType typescript setlocal tabstop=4 shiftwidth=0 softtabstop=0 expandtab')
 -- vim.cmd('autocmd FileType lua setlocal tabstop=2 shiftwidth=0 softtabstop=0 noexpandtab')
+--
+vim.cmd('autocmd FileType python setlocal tabstop=3 shiftwidth=0 softtabstop=0 noexpandtab')
+vim.cmd('autocmd FileType c      setlocal tabstop=3 shiftwidth=0 softtabstop=0 noexpandtab')
+vim.cmd('autocmd FileType cpp    setlocal tabstop=3 shiftwidth=0 softtabstop=0 noexpandtab')
 
 
 require("config.lazy")
 
 
-vim.cmd.colorscheme("natale-domini")
+-- vim.cmd.colorscheme("natale-domini")
+-- vim.cmd.colorscheme("peachpuff")
+vim.cmd.colorscheme("rural")
 
 -- haskell-tools
 local ht = require('haskell-tools')
@@ -434,7 +444,7 @@ require('nvim-treesitter').setup {
 require('nvim-treesitter').install { 'c', 'javascript', 'python' }
 
 vim.api.nvim_create_autocmd('FileType', {
-  pattern = { 'c', 'python', 'javascript' },
+  pattern = { 'c', 'python', 'javascript', 'svelte', 'typescript'},
   callback = function()
     vim.treesitter.start()                                    -- highlighting
     -- vim.wo.foldexpr = 'v:lua.vim.treesitter.foldexpr()'     -- folds
