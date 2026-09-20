@@ -6,7 +6,7 @@ local function make_transparent()
   end
 end
 
-make_transparent()
+-- make_transparent()
 -- vim.api.nvim_create_autocmd('ColorScheme', {
 --   callback = make_transparent,
 -- })
@@ -106,31 +106,19 @@ function dump(o)
    end
 end
 
---
--- function expandBraces()
--- 	local line = vim.fn.getline('.')
--- 	local local_indent = vim.fn.indent('.')
--- 	local indent_size = tonumber(vim.o.tabstop)
--- 	-- col = vim.fn.col('.')
--- 	local row, col = unpack(vim.api.nvim_win_get_cursor(0))
---
--- 	if line:sub(col, col) == '(' and line:sub(col+1, col+1) == ')' then
--- 		vim.api.nvim_buf_set_text(0, row-1, col, row-1, col, {'', '', ''})
--- 		vim.fn.cursor(row+2, local_indent)
--- 		vim.cmd(string.format(':le %d', local_indent))
--- 		vim.fn.cursor(row+1, local_indent+indent_size)
--- 		vim.cmd(string.format(':le %d', local_indent+indent_size))
--- 		vim.fn.cursor(row+1, local_indent+indent_size)
--- 	else
--- 		vim.api.nvim_buf_set_text(0, row - 1, col, row-1, col, {'', ''})
--- 		vim.fn.cursor(row+1, col)
--- 		vim.cmd(string.format(':le %d', local_indent+indent_size))
--- 		vim.fn.cursor(row+1, col)
--- 	end
--- end
+
+function use_tabs(length)
+	vim.cmd(string.format("setlocal tabstop=%d shiftwidth=0 softtabstop=%d noexpandtab", length, length))
+end
 
 
--- Set <space> as the leader key
+function use_spaces(length)
+	vim.cmd(string.format("setlocal tabstop=%d shiftwidth=0 softtabstop=%d expandtab", length, length))
+end
+
+vim.cmd("command -nargs=1 Usespaces lua use_spaces(<args>)")
+vim.cmd("command -nargs=1 Usetabs lua use_tabs(<args>)")
+
 -- See `:help mapleader`
 -- NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
 vim.g.mapleader = ';'
@@ -148,7 +136,7 @@ vim.o.number = true
 -- option above, see `:h number_relativenumber`
 vim.o.relativenumber = true
 
-vim.o.tabstop = 4
+-- vim.o.tabstop = 4
 
 -- Sync clipboard between OS and Neovim. Schedule the setting after `UiEnter` because it can
 -- increase startup-time. Remove this option if you want your OS clipboard to remain independent.
@@ -219,7 +207,7 @@ vim.keymap.set({'n'}, '<C-s>', ':w<Cr>')
 vim.keymap.set({'i'}, '<C-o><C-s>', ':w<Cr>')
 
 vim.keymap.set('n', '<C-/>', ":norm gcc<Cr>")
-vim.keymap.set('n', '<leader>c', "gcc")
+vim.keymap.set('n', '<leader>c', ":norm gcc<Cr>")
 
 vim.keymap.set({'v'}, '<C-/>', 'gc')
 vim.keymap.set({'i'}, '<C-/>', '<C-o>:norm gcc<Cr>')
@@ -281,6 +269,9 @@ vim.keymap.set({'i', 'n', 'v', 't'}, '<C-C>', 'mayiw`a')
 
 vim.keymap.set({'i', 'n', 'v', 't'}, '<C-Tab>', (function() SwitchBuffer() end))
 vim.keymap.set({'i', 'n', 'v', 't'}, '<C-S-Tab>', (function() SwitchBuffer(true) end))
+vim.keymap.set({'i', 'n', 'v', 't'}, '<C-w>c', ':bd<CR>')
+vim.keymap.set({'i', 'n', 'v', 't'}, '<M-s>', 'viw')
+
 
 BindRunCommand('<A-l>', (function() SwitchBuffer() end))
 BindRunCommand('<A-S-l>', (function() SwitchBuffer(true) end))
@@ -351,6 +342,7 @@ vim.cmd('set tabstop=2 shiftwidth=0 softtabstop=2 expandtab')
 vim.cmd('autocmd FileType haskell    setlocal tabstop=2 shiftwidth=0 softtabstop=2 expandtab')
 vim.cmd('autocmd FileType cabal      setlocal tabstop=2 shiftwidth=0 softtabstop=2 expandtab')
 vim.cmd('autocmd FileType prolog     setlocal tabstop=2 shiftwidth=0 softtabstop=0 noexpandtab')
+vim.cmd('autocmd FileType prisma     setlocal tabstop=4 shiftwidth=0 softtabstop=0 expandtab')
 vim.cmd('autocmd FileType svelte     setlocal tabstop=4 shiftwidth=0 softtabstop=0 expandtab')
 vim.cmd('autocmd FileType javascript setlocal tabstop=4 shiftwidth=0 softtabstop=0 expandtab')
 vim.cmd('autocmd FileType typescript setlocal tabstop=4 shiftwidth=0 softtabstop=0 expandtab')
@@ -402,38 +394,10 @@ vim.lsp.enable('pyright')
 
 vim.lsp.config('gdscript', {})
 -- vim.lsp.enable('gdscript')
-
-vim.api.nvim_create_autocmd("LspAttach", {
-	callback = function(ev)
-		vim.lsp.completion.enable(true, ev.data.client_id, ev.buf, {
-			autotrigger = true,
-			-- optional formating of items
-			-- convert = function(item)
-				-- remove leading misc chars for abbr name,
-				-- and cap field to 25 chars
-				--local abbr = item.label
-				--abbr = abbr:match("[%w_.]+.*") or abbr
-				--abbr = #abbr > 25 and abbr:sub(1, 24) .. "…" or abbr
-				--
-				-- remove return value
-				--local menu = ""
-
-				-- only show abbr name, remove leading misc chars (bullets etc.),
-				-- and cap field to 15 chars
-				-- local abbr = item.label
-				-- abbr = abbr:gsub("%b()", ""):gsub("%b{}", "")
-				-- abbr = abbr:match("[%w_.]+.*") or abbr
-				-- abbr = #abbr > 15 and abbr:sub(1, 14) .. "…" or abbr
-				--
-				-- -- cap return value field to 15 chars
-				-- local menu = item.detail or ""
-				-- menu = #menu > 15 and menu:sub(1, 14) .. "…" or menu
-				--
-				-- return { abbr = abbr, menu = menu }
-			-- end,
-	  })
-	end,
-})
+--
+--
+vim.lsp.config('svelte', {})
+vim.lsp.enable('svelte')
 
 
 -- tree-sitter
@@ -472,6 +436,7 @@ local builtin = require('telescope.builtin')
 vim.keymap.set({'n', 'i', 'v'}, '<C-g>', fb.file_browser, { desc = 'Telescope find files' })
 vim.keymap.set({'n', 'i', 'v'}, '<C-;>', builtin.buffers, { desc = 'Telescope buffers' })
 vim.keymap.set({'n', 'i', 'v'}, '<C-f>', builtin.treesitter, { desc = 'treesitter search' })
+-- vim.keymap.set({'n', 'i', 'v'}, '<C-f>', builtin.lsp_references, { desc = 'treesitter search' })
 
 vim.keymap.set({'n', 'v'}, '<leader>ff', fb.file_browser, { desc = 'Telescope find files' })
 -- vim.keymap.set({'n', 'i', 'v'}, '<leader>fg', builtin.live_grep, { desc = 'Telescope live grep' })
@@ -493,6 +458,61 @@ vim.keymap.set({'n', 'v'}, '<leader>e', vim.diagnostic.open_float, { desc = 'dia
 vim.keymap.set({'n', 'i', 'v'}, '<M-e>', vim.diagnostic.open_float, { desc = 'diagnostics' })
 vim.keymap.set({'n', 'i', 'v'}, '<M-S-e>', builtin.diagnostics, { desc = 'diagnostics' })
 vim.keymap.set({'n', 'v'}, '<leader>E', builtin.diagnostics, { desc = 'diagnostics' })
+
+
+-- lsp setup
+vim.api.nvim_create_autocmd("LspAttach", {
+	callback = function(ev)
+    local client = vim.lsp.get_client_by_id(ev.data.client_id)
+    if client:supports_method('textDocument/foldingRange') then
+      local win = vim.api.nvim_get_current_win()
+      vim.wo[win][0].foldmethod = "expr"
+      vim.wo[win][0].foldexpr = "v:lua.vim.lsp.foldexpr()"
+      vim.wo[win][0].foldlevel = 99
+    end
+
+    vim.keymap.set({'n', 'i', 'v'}, '<C-f>',
+        builtin.lsp_references, {desc='lsp serach'}
+    )
+
+    vim.keymap.set({'n', 'i', 'v'}, '<M-r>', vim.lsp.codelens.run, {desc='codelens'})
+    vim.keymap.set({'n', 'i', 'v'}, '<M-t>', 
+      function()
+        vim.cmd(':vsplit')
+        builtin.lsp_type_definitions()
+      end, {desc='codelens'}
+    )
+    vim.keymap.set({'n', 'i', 'v'}, '<C-e>', vim.lsp.buf.code_action, {desc='quickfix'})
+
+		vim.lsp.completion.enable(true, ev.data.client_id, ev.buf, {
+			autotrigger = true,
+			-- optional formating of items
+			-- convert = function(item)
+				-- remove leading misc chars for abbr name,
+				-- and cap field to 25 chars
+				--local abbr = item.label
+				--abbr = abbr:match("[%w_.]+.*") or abbr
+				--abbr = #abbr > 25 and abbr:sub(1, 24) .. "…" or abbr
+				--
+				-- remove return value
+				--local menu = ""
+
+				-- only show abbr name, remove leading misc chars (bullets etc.),
+				-- and cap field to 15 chars
+				-- local abbr = item.label
+				-- abbr = abbr:gsub("%b()", ""):gsub("%b{}", "")
+				-- abbr = abbr:match("[%w_.]+.*") or abbr
+				-- abbr = #abbr > 15 and abbr:sub(1, 14) .. "…" or abbr
+				--
+				-- -- cap return value field to 15 chars
+				-- local menu = item.detail or ""
+				-- menu = #menu > 15 and menu:sub(1, 14) .. "…" or menu
+				--
+				-- return { abbr = abbr, menu = menu }
+			-- end,
+	  })
+	end,
+})
 
 
 -- debuggers
