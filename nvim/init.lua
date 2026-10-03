@@ -24,6 +24,8 @@ BuildProj = function()
     vim.cmd('!swipl -l %', vim.fn.expand('%'))
   elseif ft == 'haskell' then
     vim.cmd('!cd .. && cabal build')
+  elseif ft == 'sql' then
+    vim.cmd('!cd .. && cabal build')
   else
     print('filetype', ft, 'is not supported')
   end
@@ -62,14 +64,14 @@ end
 
 CreateEncloseInCharBinds = function(c, matching, bc)
 	if bc == nil then bc = c end
-	vim.keymap.set({'n', 't'}, string.format('<M-%s>', bc), EncloseWordInChar(c, matching))
+	vim.keymap.set({'n'}, string.format('<M-%s>', bc), EncloseWordInChar(c, matching))
 	vim.keymap.set({'v'},      string.format('<M-%s>', bc), EncloseSelectionInChar(c, matching))
 	vim.keymap.set({'i'},      string.format('<M-%s>', bc), string.format('<C-o>%s', EncloseWordInChar(c, matching)))
 end
 
 
 BindRunCommand = function(map, command)
-	vim.keymap.set({'n', 't', 'v'}, map, command)
+	vim.keymap.set({'n', 'v'}, map, command)
 	vim.keymap.set('i', map, string.format("<C-o>%s", command))
 end
 
@@ -212,8 +214,8 @@ vim.keymap.set('n', '<leader>c', ":norm gcc<Cr>")
 vim.keymap.set({'v'}, '<C-/>', 'gc')
 vim.keymap.set({'i'}, '<C-/>', '<C-o>:norm gcc<Cr>')
 
-vim.keymap.set({'n', 'v', 't'}, 'd', '"_d')
-vim.keymap.set({'n', 'v', 't'}, '<Del>', '"_dl')
+vim.keymap.set({'n', 'v'}, 'd', '"_d')
+vim.keymap.set({'n', 'v'}, '<Del>', '"_dl')
 
 BindRunCommand('<C-BS>', 'db')
 BindRunCommand('<C-Del>', 'de')
@@ -401,11 +403,11 @@ vim.lsp.enable('svelte')
 
 
 -- tree-sitter
-require('nvim-treesitter').setup {
+-- require('nvim-treesitter').setup {
   -- Directory to install parsers and queries to (prepended to `runtimepath` to have priority)
-  install_dir = vim.fn.stdpath('data') .. '/site'
-}
-require('nvim-treesitter').install { 'c', 'javascript', 'python' }
+  -- install_dir = vim.fn.stdpath('data') .. '/site'
+-- }
+-- require('nvim-treesitter').install { 'c', 'javascript', 'python' }
 
 vim.api.nvim_create_autocmd('FileType', {
   pattern = { 'c', 'python', 'javascript', 'svelte', 'typescript'},
@@ -455,7 +457,6 @@ vim.keymap.set({'n', 'v'}, 'gD',
 )
 
 vim.keymap.set({'n', 'v'}, '<leader>e', vim.diagnostic.open_float, { desc = 'diagnostics' })
-vim.keymap.set({'n', 'i', 'v'}, '<M-e>', vim.diagnostic.open_float, { desc = 'diagnostics' })
 vim.keymap.set({'n', 'i', 'v'}, '<M-S-e>', builtin.diagnostics, { desc = 'diagnostics' })
 vim.keymap.set({'n', 'v'}, '<leader>E', builtin.diagnostics, { desc = 'diagnostics' })
 
@@ -482,7 +483,23 @@ vim.api.nvim_create_autocmd("LspAttach", {
         builtin.lsp_type_definitions()
       end, {desc='codelens'}
     )
+
     vim.keymap.set({'n', 'i', 'v'}, '<C-e>', vim.lsp.buf.code_action, {desc='quickfix'})
+    vim.keymap.set({'n', 'i', 'v'}, '<M-e>', vim.lsp.buf.signature_help, { desc = 'sig' })
+
+    vim.keymap.set('v', '<M-f>',
+      function()
+        vim.lsp.buf.format({
+          async = false,
+          range = {
+            ["start"] = vim.api.nvim_buf_get_mark(0, "<"),
+            ["end"] = vim.api.nvim_buf_get_mark(0, ">"),
+          }
+        })
+        print('dasdf')
+      end,
+      { desc = 'format' }
+    )
 
 		vim.lsp.completion.enable(true, ev.data.client_id, ev.buf, {
 			autotrigger = true,
