@@ -26,6 +26,8 @@ BuildProj = function()
     vim.cmd('!cd .. && cabal build')
   elseif ft == 'sql' then
     vim.cmd('!cd .. && cabal build')
+  elseif ft == 'fsharp' then
+    vim.cmd('FsiEvalBuffer')
   else
     print('filetype', ft, 'is not supported')
   end
@@ -421,6 +423,14 @@ vim.api.nvim_create_autocmd('FileType', {
     -- vim.wo.foldexpr = 'v:lua.vim.treesitter.foldexpr()'     -- folds
     -- vim.wo.foldmethod = 'expr'
     -- vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()" -- indentation
+  end,
+})
+
+
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = { 'c', 'javascript', 'svelte', 'typescript', 'prisma', 'fsharp'},
+  callback = function()
+    vim.api.nvim_buf_set_option(0, "commentstring", "// %s")
   end,
 })
 

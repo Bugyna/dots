@@ -12,6 +12,6 @@ return {
     -- })
 
     -- Show fsi in horizontal split
-    vim.g["fsharp#fsi_window_command"] = "vnew"
+    vim.g["fsharp#fsi_window_command"] = "60vnew"
   end
 }
