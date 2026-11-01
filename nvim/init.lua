@@ -344,7 +344,7 @@ vim.cmd('set tabstop=2 shiftwidth=0 softtabstop=2 expandtab')
 vim.cmd('autocmd FileType haskell    setlocal tabstop=2 shiftwidth=0 softtabstop=2 expandtab')
 vim.cmd('autocmd FileType cabal      setlocal tabstop=2 shiftwidth=0 softtabstop=2 expandtab')
 vim.cmd('autocmd FileType prolog     setlocal tabstop=2 shiftwidth=0 softtabstop=0 noexpandtab')
-vim.cmd('autocmd FileType prisma     setlocal tabstop=4 shiftwidth=0 softtabstop=0 expandtab')
+vim.cmd('autocmd FileType prisma     setlocal tabstop=4 shiftwidth=4 softtabstop=4 expandtab')
 vim.cmd('autocmd FileType svelte     setlocal tabstop=4 shiftwidth=0 softtabstop=0 expandtab')
 vim.cmd('autocmd FileType javascript setlocal tabstop=4 shiftwidth=0 softtabstop=0 expandtab')
 vim.cmd('autocmd FileType typescript setlocal tabstop=4 shiftwidth=0 softtabstop=0 expandtab')
@@ -402,6 +402,9 @@ vim.lsp.config('svelte', {})
 vim.lsp.enable('svelte')
 
 
+vim.lsp.enable('ionide')
+
+
 -- tree-sitter
 -- require('nvim-treesitter').setup {
   -- Directory to install parsers and queries to (prepended to `runtimepath` to have priority)
@@ -409,8 +412,10 @@ vim.lsp.enable('svelte')
 -- }
 -- require('nvim-treesitter').install { 'c', 'javascript', 'python' }
 
+vim.treesitter.language.register('typescript', { 'svelte' })
+
 vim.api.nvim_create_autocmd('FileType', {
-  pattern = { 'c', 'python', 'javascript', 'svelte', 'typescript'},
+  pattern = { 'c', 'python', 'javascript', 'svelte', 'typescript', 'prisma', 'fsharp'},
   callback = function()
     vim.treesitter.start()                                    -- highlighting
     -- vim.wo.foldexpr = 'v:lua.vim.treesitter.foldexpr()'     -- folds
@@ -472,9 +477,9 @@ vim.api.nvim_create_autocmd("LspAttach", {
       vim.wo[win][0].foldlevel = 99
     end
 
-    vim.keymap.set({'n', 'i', 'v'}, '<C-f>',
-        builtin.lsp_references, {desc='lsp serach'}
-    )
+    -- vim.keymap.set({'n', 'i', 'v'}, '<C-f>',
+    --     builtin.lsp_references, {desc='lsp serach'}
+    -- )
 
     vim.keymap.set({'n', 'i', 'v'}, '<M-r>', vim.lsp.codelens.run, {desc='codelens'})
     vim.keymap.set({'n', 'i', 'v'}, '<M-t>', 

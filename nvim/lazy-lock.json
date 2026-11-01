@@ -1,4 +1,5 @@
 {
+  "Ionide-vim": { "branch": "master", "commit": "30aac182c9652f37b5ce65942e5cc32371595995" },
   "haskell-tools.nvim": { "branch": "main", "commit": "754270182bdd3ce62ed86c97bd8c5de359daefde" },
   "lazy.nvim": { "branch": "main", "commit": "306a05526ada86a7b30af95c5cc81ffba93fef97" },
   "nvim-dap": { "branch": "master", "commit": "9e848e09a697ee95302a3ef2dd43fd6eb709e570" },
