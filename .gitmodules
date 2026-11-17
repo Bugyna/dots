@@ -1,3 +1,6 @@
 [submodule "nvim/lua/bugx"]
 	path = nvim/lua/bugx
 	url = https://github.com/bugyna/bugx.nvim
+[submodule "nvim/lua/db-interactive"]
+	path = nvim/lua/db-interactive
+	url = git@github.com:bugyna/db-interactive-vim

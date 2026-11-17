@@ -1,7 +1,7 @@
 return {
   -- F# support
   'ionide/Ionide-vim',
-  ft = { 'fsharp', 'fsharp_project' },
+  ft = { 'fsharp', 'fsharp_project', 'fsharp-script' },
   config = function()
     -- if you need extra configuration/events, example with 'Show tooltips on CursorHold'
     -- vim.api.nvim_create_autocmd({ 'CursorHold' }, {

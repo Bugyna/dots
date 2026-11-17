@@ -1,3 +1,13 @@
+
+build_register = "u"
+
+vim.filetype.add({
+  pattern = {
+    ['.*/.gitconfig-*'] = 'gitconfig',
+    ['.fsi'] = 'fsharp-script',
+  },
+})
+
 local function make_transparent()
   local groups = {'Normal', 'NormalNC', 'NormalFloat', 'SignColumn',
                   'StatusLine', 'StatusLineNC', 'EndOfBuffer'}
@@ -12,6 +22,7 @@ end
 -- })
 
 BuildProj = function()
+  vim.cmd(string.format(":redir @%s", build_register))
   local ft = vim.api.nvim_buf_get_option(0, 'filetype')
 
   if ft == 'python' then
@@ -24,17 +35,19 @@ BuildProj = function()
     vim.cmd('!swipl -l %', vim.fn.expand('%'))
   elseif ft == 'haskell' then
     vim.cmd('!cd .. && cabal build')
-  elseif ft == 'sql' then
-    vim.cmd('!cd .. && cabal build')
-  elseif ft == 'fsharp' then
+  elseif ft == 'fsharp-script' then
     vim.cmd('FsiEvalBuffer')
+  elseif ft == 'fsharp' then
+    vim.cmd('!dotnet build')
   else
     print('filetype', ft, 'is not supported')
   end
+  vim.cmd(":redir END")
 end
 
 
 RunProj = function()
+  vim.cmd(string.format(":redir @%s", build_register))
   local ft = vim.api.nvim_buf_get_option(0, 'filetype')
   if ft == 'python' then
     vim.cmd('!python %', vim.fn.expand('%'))
@@ -46,9 +59,18 @@ RunProj = function()
     vim.cmd('!swipl -l %', vim.fn.expand('%'))
   elseif ft == 'haskell' then
     vim.cmd('!cd .. && cabal run')
+  elseif ft == 'fsharp' then
+    vim.cmd('!dotnet run')
+  elseif ft == 'fsharp-script' then
+    vim.cmd('FsiEvalBuffer')
   else
     print('filetype', ft, 'is not supported')
   end
+  vim.cmd(":redir END")
+end
+
+function ShowLastBuildOutput()
+  vim.cmd(string.format("new | execute 'normal! \"%sp'", build_register))
 end
 
 
@@ -97,6 +119,24 @@ SwitchBuffer = function(prev)
 end
 
 
+function run_command_save_output(cmd)
+  if cmd ~= nil then
+    vim.cmd(string.format(':new %s | r !%s', cmd, cmd))
+  end
+end
+
+function run_command_save_output_bind()
+  vim.ui.input(
+    {
+      default = "",
+      prompt = "run command: "
+    },
+    run_command_save_output
+  )
+end
+
+
+
 function dump(o)
    if type(o) == 'table' then
       local s = '{ '
@@ -122,6 +162,7 @@ end
 
 vim.cmd("command -nargs=1 Usespaces lua use_spaces(<args>)")
 vim.cmd("command -nargs=1 Usetabs lua use_tabs(<args>)")
+
 
 -- See `:help mapleader`
 -- NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
@@ -213,6 +254,9 @@ vim.keymap.set({'i'}, '<C-o><C-s>', ':w<Cr>')
 vim.keymap.set('n', '<C-/>', ":norm gcc<Cr>")
 vim.keymap.set('n', '<leader>c', ":norm gcc<Cr>")
 
+
+vim.keymap.set('n', '<leader>r', ":s///g")
+
 vim.keymap.set({'v'}, '<C-/>', 'gc')
 vim.keymap.set({'i'}, '<C-/>', '<C-o>:norm gcc<Cr>')
 
@@ -245,8 +289,11 @@ BindRunCommand('<A-Up>',    ':m-2<Cr>')
 BindRunCommand('<A-Down>',  ':m+1<CR>')
 
 
-vim.keymap.set({'n', 'v'}, '<C-Space>', ':')
-vim.keymap.set('i', '<C-Space>', '<C-o>:')
+vim.keymap.set({'n', 'v'}, '<C-Space>',
+  run_command_save_output_bind
+)
+
+vim.keymap.set('i', '<C-Space>', run_command_save_output_bind)
 
 vim.keymap.set('v', '<Tab>', '>>')
 vim.keymap.set('v', '<S-Tab>', '<<')
@@ -257,6 +304,7 @@ vim.keymap.set('n', '<S-Tab>', '<<')
 
 vim.keymap.set({'i', 'n', 'v'}, '<S-Cr>', BuildProj)
 vim.keymap.set({'i', 'n', 'v'}, '<C-Cr>', RunProj)
+vim.keymap.set({'i', 'n', 'v'}, '<C-e>', ShowLastBuildOutput)
 
 
 vim.keymap.set({'i', 'n', 'v'}, '<S-Up>', '<Up>')
@@ -360,6 +408,11 @@ vim.cmd('autocmd FileType cpp    setlocal tabstop=3 shiftwidth=0 softtabstop=0 n
 require("config.lazy")
 
 
+dbi = require("db-interactive")
+dbi.config()
+
+
+
 -- vim.cmd.colorscheme("natale-domini")
 -- vim.cmd.colorscheme("peachpuff")
 vim.cmd.colorscheme("rural")
@@ -415,9 +468,10 @@ vim.lsp.enable('ionide')
 -- require('nvim-treesitter').install { 'c', 'javascript', 'python' }
 
 vim.treesitter.language.register('typescript', { 'svelte' })
+vim.treesitter.language.register('fsharp', { 'fsharp-script' })
 
 vim.api.nvim_create_autocmd('FileType', {
-  pattern = { 'c', 'python', 'javascript', 'svelte', 'typescript', 'prisma', 'fsharp'},
+  pattern = { 'c', 'python', 'javascript', 'svelte', 'typescript', 'prisma', 'fsharp', 'fsharp-script'},
   callback = function()
     vim.treesitter.start()                                    -- highlighting
     -- vim.wo.foldexpr = 'v:lua.vim.treesitter.foldexpr()'     -- folds
@@ -428,13 +482,14 @@ vim.api.nvim_create_autocmd('FileType', {
 
 
 vim.api.nvim_create_autocmd('FileType', {
-  pattern = { 'c', 'javascript', 'svelte', 'typescript', 'prisma', 'fsharp'},
+  pattern = { 'c', 'javascript', 'svelte', 'typescript', 'prisma', 'fsharp', 'fsharp-script'},
   callback = function()
     vim.api.nvim_buf_set_option(0, "commentstring", "// %s")
   end,
 })
 
 -- telescope
+
 
 require("telescope").setup {
 defaults = { --[[ your defaults]] },
@@ -444,6 +499,30 @@ defaults = { --[[ your defaults]] },
 	}
 }
 
+
+my_buffer_list = function()
+  local action_state = require('telescope.actions.state')
+  local actions = require('telescope.actions')
+  require('telescope.builtin').buffers{
+    attach_mappings = function(prompt_bufnr, map)
+      local delete_buf = function()
+        local selection = action_state.get_selected_entry()
+        -- depending if you want to close or not, include this or not
+        actions.close(prompt_bufnr)
+        -- print(vim.inspect(selection))
+        -- better print selection before first running this. I am not sure if it have a bufnr or if this field is named differently
+        vim.api.nvim_buf_delete(selection.bufnr, { force = true })
+      end
+
+      -- mode, key, func
+      -- this is just an example
+      map('n', 'd', delete_buf)
+      return true
+    end
+  }
+end
+
+
 local fb = require "telescope".extensions.file_browser
 local fb_actions = require "telescope".extensions.file_browser.actions
 
@@ -451,7 +530,7 @@ require("telescope").load_extension "file_browser"
 
 local builtin = require('telescope.builtin')
 vim.keymap.set({'n', 'i', 'v'}, '<C-g>', fb.file_browser, { desc = 'Telescope find files' })
-vim.keymap.set({'n', 'i', 'v'}, '<C-;>', builtin.buffers, { desc = 'Telescope buffers' })
+vim.keymap.set({'n', 'i', 'v'}, '<C-;>', my_buffer_list, { desc = 'Telescope buffers' })
 vim.keymap.set({'n', 'i', 'v'}, '<C-f>', builtin.treesitter, { desc = 'treesitter search' })
 -- vim.keymap.set({'n', 'i', 'v'}, '<C-f>', builtin.lsp_references, { desc = 'treesitter search' })
 
@@ -499,7 +578,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
       end, {desc='codelens'}
     )
 
-    vim.keymap.set({'n', 'i', 'v'}, '<C-e>', vim.lsp.buf.code_action, {desc='quickfix'})
+    -- vim.keymap.set({'n', 'i', 'v'}, '<C-e>', vim.lsp.buf.code_action, {desc='quickfix'})
     vim.keymap.set({'n', 'i', 'v'}, '<M-e>', vim.lsp.buf.signature_help, { desc = 'sig' })
 
     vim.keymap.set('v', '<M-f>',
