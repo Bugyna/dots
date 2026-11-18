@@ -408,8 +408,8 @@ vim.cmd('autocmd FileType cpp    setlocal tabstop=3 shiftwidth=0 softtabstop=0 n
 require("config.lazy")
 
 
-dbi = require("db-interactive")
-dbi.config()
+-- dbi = require("db-interactive")
+-- dbi.config("/home/bugy/work/db/ora-login")
 
 
 
